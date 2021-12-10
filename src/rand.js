@@ -2,6 +2,10 @@ function randFloat(max){
     return Math.random() * max;
 }
 
+function randFloatRange(min, max){
+    return min + Math.random()*(max-min);
+}
+
 function randInt(max){
     return Math.floor(Math.random() * max);
 }
@@ -24,4 +28,4 @@ function randChoice(array){
 }
 
 
-export {randChoice, randFloat, randInt, randIntDecaying, randIntRange}
+export {randChoice, randFloat, randFloatRange, randInt, randIntDecaying, randIntRange}

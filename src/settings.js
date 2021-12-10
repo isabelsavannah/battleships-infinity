@@ -53,6 +53,37 @@ let defaults = {
         timeout: 2,
     },
 
+    genotype: {
+        xBound: 1600,
+        yBound: 1600,
+        minBlockRadius: 8,
+        maxBlockRadius: 256,
+        minDensity: 0.3,
+        maxDensity: 3,
+        minSides: 3,
+        maxSides: 12,
+        symmetryChance: 0.9,
+        payloadWeights: {
+            'thruster': 0.2,
+            'turret': 0.2,
+        }
+        seedParts: 6,
+        pid: {
+            pMin: 0.001, 
+            pMax: 0.1,
+            pExp: 2,
+            dMin: 0.01,
+            dMax: 2,
+            dExp: 2,
+            iMin: 0,
+            iMax: 0.01,
+            iExp: 4,
+            tiMin: 10,
+            tiMax: 1000,
+            tiExp: 4,
+        }
+    },
+
     physicsTickTime: 0.01,
     displayTickTime: (1/120),
 
