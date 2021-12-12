@@ -1,6 +1,6 @@
 import {Simulation} from './simulation.js'
 import {randChoice, randInt} from './rand.js'
-import {reproduceDesign} from './design-tree.js'
+import {DesignPileModel} from './genotype/direct-pile.js'
 
 let allocateId = (() => {
     var lastId = 0;
@@ -50,13 +50,12 @@ function announce(text){
 }
 
 class Pool{
-    constructor(physics, settings, seeds){
+    constructor(physics, settings){
         this.settings = settings;
         this.sim = new Simulation(physics, settings);
         this.tickCount = 0;
         this.sim.stage();
         this.nextId = 0;
-        this.seeds = seeds;
 
         this.stablePopulation = [];
         this.unstablePopulation = [];
@@ -91,8 +90,8 @@ class Pool{
 
     pickForReproduction(){
         if(this.stablePopulation.length < this.settings.pool.minStableForReproduction){
-            console.log("Reproducing from seeds because not enough stable population");
-            return randChoice(this.seeds);
+            console.log("Reproducing from seed because not enough stable population");
+            return DesignPileModel.seed(this.settings);
         }else{
             let index = Math.min(randInt(this.stablePopulation.length), randInt(this.stablePopulation.length));
             console.log(`Reproducing from design ${this.stablePopulation[index].id} from stable index ${index}/${this.stablePopulation.length}, score ${this.stablePopulation[index].getScore()}`);
@@ -101,7 +100,7 @@ class Pool{
     }
 
     reproduce(){
-        let newDesign = reproduceDesign(this.pickForReproduction(), this.pickForReproduction(), this.settings);
+        let newDesign = DesignPileModel.seed(this.settings); //PreproduceDesign(this.pickForReproduction(), this.pickForReproduction(), this.settings);
         this.unstablePopulation.push(new DesignRecord(newDesign, this.settings));
     }
 
@@ -150,6 +149,7 @@ class Pool{
         }else{
             choice = randChoice(this.unstablePopulation);
             console.log(`Spawning an unstable design ${choice.id}`);
+            console.log(choice.design.pretty().join('\n'));
         }
 
         let ship = this.sim.spawnDesign(choice.design);

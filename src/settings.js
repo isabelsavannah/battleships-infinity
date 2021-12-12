@@ -9,15 +9,15 @@ let defaults = {
     },
 
     field: {
-        xSize: 16000,
-        ySize: 16000,
-        renderScale: 16,
+        xSize: 4000,
+        ySize: 4000,
+        renderScale: 4,
     },
 
     pool: {
         recordsStable: 1000,
         recordsUnstable: 20,
-        concurrentPopulation: 4,
+        concurrentPopulation: 1,
         concurrentStablePopulation: 2,
         stableRuns: 5,
         minStableForReproduction: 40,
@@ -55,15 +55,15 @@ let defaults = {
 
     phenotype: {
         rootBlock: {
-            radius: 16,
+            radius: 32,
             sides: 6,
             density: 1,
         },
     },
 
     genotype: {
-        xBound: 1600,
-        yBound: 1600,
+        xBound: 400,
+        yBound: 400,
         minBlockRadius: 8,
         maxBlockRadius: 256,
         minDensity: 0.3,
@@ -72,10 +72,10 @@ let defaults = {
         maxSides: 12,
         symmetryChance: 0.9,
         payloadWeights: {
-            'thruster': 0.2,
+            'thruster': 0.4,
             'turret': 0.2,
         },
-        seedParts: 6,
+        seedParts: 2,
         pid: {
             pMin: 0.001, 
             pMax: 0.1,

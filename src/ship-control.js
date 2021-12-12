@@ -85,9 +85,9 @@ class TurretControl{
 
 
 class ShipControl extends EntityControl{
-    constructor(physTree, designMeta, sim, settings){
+    constructor(physPile, designMeta, sim, settings){
         super(sim, 'ship');
-        this.physTree = physTree;
+        this.physPile = physPile;
         this.designMeta = designMeta;
         this.physics = sim.physics;
         this.settings = settings;
@@ -114,45 +114,40 @@ class ShipControl extends EntityControl{
     }
 
     spawn(x, y){
-        let controlCollector = []
-        this.partRefs = this.spawnBlocksAt(x, y, 0, this.physTree, controlCollector).flat(Infinity);
-        this.rootPartControl = controlCollector[0];
+        let leafs = this.physPile.blocks.map(block => this.spawnBlock(x, y, block, []));
+        let root = this.spawnBlock(x, y, this.physPile.rootBlock, leafs);
+        this.partRefs = [leafs, [root]].flat();
+
+        this.rootPartControl = this.partControlMap[this.physics.getId(root)];
         this.shipRef = this.physics.join(this.partRefs, this);
+
         this.id = this.physics.getId(this.shipRef);
+
         this.mapThrusters();
         this.mapTurrets();
         this.physics.add(this.shipRef);
 
         let tsets = [this.reverseThrusters, this.forwardThrusters, this.rightThrusters, this.leftThrusters];
-        this.storedFood = this.settings.ship.initialFood * this.physics.getMass(this.shipRef);
         tsets.map(y=>y.map(x => this.physics.deemph(this.partRefMap[x])));
+
+        this.storedFood = this.settings.ship.initialFood * this.physics.getMass(this.shipRef);
 
         this.sim.liveShips.push(this);
     }
 
-	spawnBlocksAt(turtleX, turtleY, turtleTheta, physTree, parentsChildCollector){
-		let newTheta = turtleTheta + physTree.rotation;
-		let newX = turtleX + Math.sin(newTheta)*physTree.translation;
-		let newY = turtleY + Math.cos(newTheta)*physTree.translation;
-
-        let block = physTree.block;
+    spawnBlock(xOff, yOff, block, children = []){
         let opts = block.payload.type == "thruster" ? {fillStyle: "#e68a49"} : {};
-		let partRef = this.physics.drawPart(newX, newY, newTheta, block, this, opts);
+		let partRef = this.physics.drawPart(xOff + block.x, yOff + block.y, block.theta, block, this, opts);
         let id = this.physics.getId(partRef);
+        let partControl = new PartControl(this, id, partRef, children);
+
         this.physMap[id] = block;
         this.partRefMap[id] = partRef;
-        this.angleOffsets[id] = newTheta;
-
-        let childCollector = [];
-		let childPartRefs = physTree.children.map(branch => this.spawnBlocksAt(newX, newY, newTheta, branch, childCollector));
-
-        let partControl = new PartControl(this, id, partRef, childCollector);
-        parentsChildCollector.push(partControl);
-
+        this.angleOffsets[id] = block.theta;
         this.partControlMap[id] = partControl;
 
-        return [partRef, childPartRefs];
-	}
+        return partRef;
+    }
 
     handleCollisionBeforeWith(other, pair){
         if(other.type === 'food'){
@@ -416,16 +411,16 @@ class ShipControl extends EntityControl{
         let error = modCircleDelta(targetTheta - currentTheta) / Math.PI; //put to a [-1, 1] scale
 
         this.angleIntegralHistory.push(error);
-        if(this.angleIntegralHistory.length > this.designMeta.angularControl.ti){
+        if(this.angleIntegralHistory.length > this.designMeta.ti){
             this.angleIntegralHistory.pop();
         }
 
         let integralValue = this.angleIntegralHistory.reduce((x, y) => x+y, 0);
 
         var control = 
-            this.designMeta.angularControl.p.value * error
-            + this.designMeta.angularControl.d.value * currentOmega * -1
-            + this.designMeta.angularControl.i.value * integralValue;
+            this.designMeta.p * error
+            + this.designMeta.d * currentOmega * -1
+            + this.designMeta.i * integralValue;
 
         control = Math.min(control, 1);
         control = Math.max(control, -1);

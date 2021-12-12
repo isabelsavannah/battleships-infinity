@@ -1,5 +1,5 @@
 import {EntityControl} from './entity-control.js'
-import {PhysBlock, PhysPayload} from './phys-tree.js'
+import {PhysBlock, PhysPayload} from './phenotype.js'
 
 class BulletControl extends EntityControl{
     constructor(sim, damage){
@@ -14,7 +14,7 @@ class BulletControl extends EntityControl{
     spawn(x, y, theta){
         this.fuse = this.settings.fuseDuration;
 
-        let block = new PhysBlock(this.settings.bullet.sides, this.settings.bullet.radius, 0, new PhysPayload('bullet'));
+        let block = new PhysBlock(0, 0, 0, this.settings.bullet.sides, this.settings.bullet.radius, 0, new PhysPayload('bullet'));
         this.blockRef = this.physics.drawPart(x, y, 0, block, this, {fillStyle: "#ff0000", sensor: true});
 
         let vel = {x: Math.sin(theta)*this.settings.bullet.velocity, y: Math.cos(theta)*this.settings.bullet.velocity};

@@ -38,7 +38,7 @@ class Simulation{
     spawnDesign(design){
         let x = randIntRange(this.field.xSize*-0.40, this.field.xSize*0.40);
         let y = randIntRange(this.field.ySize*-0.40, this.field.ySize*0.40);
-        let phys = design.tree.build();
+        let phys = design.build();
         let ship = new ShipControl(phys, design.meta, this, this.settings);
         this.controls.push(ship);
         ship.spawn(x, y);
