@@ -53,6 +53,14 @@ let defaults = {
         timeout: 2,
     },
 
+    phenotype: {
+        rootBlock: {
+            radius: 16,
+            sides: 6,
+            density: 1,
+        },
+    },
+
     genotype: {
         xBound: 1600,
         yBound: 1600,
@@ -66,7 +74,7 @@ let defaults = {
         payloadWeights: {
             'thruster': 0.2,
             'turret': 0.2,
-        }
+        },
         seedParts: 6,
         pid: {
             pMin: 0.001, 

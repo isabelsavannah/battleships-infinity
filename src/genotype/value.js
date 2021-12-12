@@ -1,14 +1,6 @@
-import {randFloatRange} from './rand.js'
+import {randFloat, randFloatRange} from '../rand.js';
 
-class GenotypeValueSpec{
-
-}
-
-class ExponentialScaling extends RealScalingModel{
-    constructor(min, max){
-
-
-class PolyScaling extends RealScalingModel{
+class PolyScaling{
     constructor(min, max, exponent){
         this.min = min;
         this.max = max;
@@ -16,10 +8,10 @@ class PolyScaling extends RealScalingModel{
     }
 
     random(){
-        let scaledMin = Math.pow(this.min, this.exponent);
-        let scaledMax = Math.pow(this.min, this.exponent);
+        let scaledMin = Math.pow(this.min, 1/this.exponent);
+        let scaledMax = Math.pow(this.max, 1/this.exponent);
         let scaledChoice = randFloatRange(scaledMin, scaledMax);
-        return Math.pow(scaledChoice, 1/this.exponent);
+        return Math.pow(scaledChoice, this.exponent);
     }
 }
 
@@ -29,17 +21,27 @@ class LinearScaling extends PolyScaling{
     }
 }
 
-class GenotypeReal extends GenotypeValueSpec{
+class GenotypeReal{
     constructor(scaling){
         this.scaling = scaling;
     }
+
+    random(){
+        return this.scaling.random();
+    }
+
+    phenotype(gene){
+        return gene;
+    }
 }
 
-class GenotypeInteger extends GenotypeValueSpec{
-
+class GenotypeInteger extends GenotypeReal{
+    phenotype(gene){
+        return Math.round(gene);
+    }
 }
 
-class GenotypeWeightedEnum extends GenotypeValueSpec{
+class GenotypeWeightedEnum{
     constructor(weightedValues){
         this.totalWeight = Object.values(weightedValues).reduce((x, y)=>x+y, 0);
         this.weightedValues = weightedValues;
@@ -47,7 +49,7 @@ class GenotypeWeightedEnum extends GenotypeValueSpec{
 
     random(){
         var choice = randFloat(this.totalWeight);
-        for(value in this.weightedValues){
+        for(let value in this.weightedValues){
             choice-= this.weightedValues[value];
             if(choice <= 0){
                 return value;
@@ -56,9 +58,13 @@ class GenotypeWeightedEnum extends GenotypeValueSpec{
 
         return randChoice(object.keys(this.weightedValues));
     }
+
+    phenotype(gene){
+        return gene;
+    }
 }
 
-class GenotyopeEnum extends GenotypeWeightedEnum{
+class GenotypeEnum extends GenotypeWeightedEnum{
     constructor(values){
         let weightedValues = {};
         for(value of values){
@@ -68,7 +74,4 @@ class GenotyopeEnum extends GenotypeWeightedEnum{
     }
 }
 
-
-}
-
-export {GenotypeReal, GenotypeInteger, GenotypeEnum}
+export {GenotypeReal, GenotypeInteger, GenotypeEnum, GenotypeWeightedEnum, LinearScaling, PolyScaling}
