@@ -2,6 +2,7 @@ import {EntityControl} from './entity-control.js'
 import {BulletControl} from './bullet-control.js'
 import {randChoice, randInt} from './rand.js'
 import {navigate, modCircle, modCircleDelta} from './geometry.js'
+import {debugAnnounce} from './debug.js'
 
 class PartControl{
     constructor(parentControl, id, partRef, children){
@@ -104,7 +105,7 @@ class ShipControl extends EntityControl{
         this.age = 0;
         this.score = 0;
 
-        this.angleIntegralHistory = [];
+        this.angleHistoryAccum = 0;
 
         this.dead = false;
     }
@@ -276,7 +277,7 @@ class ShipControl extends EntityControl{
 
             this.targetLocation = bestFood.getLocation();
             bestFood.onDestroy(() => this.targetLocation = null);
-            this.angleIntegralHistory = [];
+            this.angleHistoryAccum = 0;
         }
     }
 
@@ -322,6 +323,8 @@ class ShipControl extends EntityControl{
         this.rightThrusters = [];
         this.leftThrusters = [];
 
+        console.log(this.physics.getLocation(this.shipRef));
+
         for(var id in this.physMap){
             id = +id;
             if(this.physMap[id].payload.type != "thruster"){
@@ -337,20 +340,34 @@ class ShipControl extends EntityControl{
             let angleDeltaAbs = Math.abs(angleDelta);
             let thrustAngleAbs = Math.abs(modCircleDelta(thrustAngle));
 
+            var res = "";
             if(angleDeltaAbs < Math.PI/8 || angleDeltaAbs > (7*Math.PI/8)){
                 if(thrustAngleAbs <= Math.PI/2){
                     this.forwardThrusters.push(id);
+                    res = 'f';
                 }else{
                     this.reverseThrusters.push(id);
+                    res = 'r';
                 }
             }else{
                 if(angleDelta >= 0){
                     this.leftThrusters.push(id);
+                    res = 'l';
                 }else{
                     this.rightThrusters.push(id);
+                    res = 'r';
                 }
             }
+            console.log(this.physics.getLocation(partRef), partPositionAngle/Math.PI, thrustAngle/Math.PI, partAngle/Math.PI, angleDelta, res);
+
         }
+
+        debugAnnounce({
+            'forwardThrusters': this.forwardThrusters,
+            'reverseThrusters': this.reverseThrusters,
+            'rightThrusters': this.rightThrusters,
+            'leftThrusters': this.leftThrusters,
+        });
     }
 
     tick(){
@@ -407,31 +424,41 @@ class ShipControl extends EntityControl{
     angularControl(){
         let targetTheta = navigate(this.physics.getLocation(this.shipRef), this.targetLocation);
         let currentTheta = this.physics.getTheta(this.shipRef);
-        let currentOmega = this.physics.getOmega(this.shipRef) / Math.PI;
-        let error = modCircleDelta(targetTheta - currentTheta) / Math.PI; //put to a [-1, 1] scale
+        let currentOmega = this.physics.getOmega(this.shipRef);
+        let error = modCircleDelta(currentTheta - targetTheta); //put to a [-1, 1] scale
 
-        this.angleIntegralHistory.push(error);
-        if(this.angleIntegralHistory.length > this.designMeta.ti){
-            this.angleIntegralHistory.pop();
-        }
+        this.angleHistoryAccum += error;
+        let integralValue = this.angleHistoryAccum;
 
-        let integralValue = this.angleIntegralHistory.reduce((x, y) => x+y, 0);
-
+        let params = this.designMeta.parameters;
         var control = 
-            this.designMeta.p * error
-            + this.designMeta.d * currentOmega * -1
-            + this.designMeta.i * integralValue;
+            params.p * error
+            - params.d * currentOmega
+            + params.i * integralValue;
 
         control = Math.min(control, 1);
         control = Math.max(control, -1);
 
         if(control > 0){
-            this.powerThrusters(this.rightThrusters, control);
-            this.leftThrusters.map(x => this.physics.deemph(this.partRefMap[x]));
-        }else{
-            this.powerThrusters(this.leftThrusters, -1*control);
+            this.powerThrusters(this.leftThrusters, control);
             this.rightThrusters.map(x => this.physics.deemph(this.partRefMap[x]));
+        }else{
+            this.powerThrusters(this.rightThrusters, -1*control);
+            this.leftThrusters.map(x => this.physics.deemph(this.partRefMap[x]));
         }
+
+        let round = x => Math.round(x*10000000)/10000000;
+        let format = (x) => x >= 0 ? "+"+round(x) : ""+round(x);
+        debugAnnounce({
+            'targetTheta': targetTheta,
+            'currentTheta': currentTheta,
+            'currentOmega': currentOmega,
+            'error': error,
+            'p term': format(params.p*error),
+            'd term': format(-1*params.d*currentOmega),
+            'i term': format(params.i*integralValue),
+            'clamped control': control,
+        });
     }
 
     powerThrusters(thrusterIds, power){

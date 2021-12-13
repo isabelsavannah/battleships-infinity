@@ -93,8 +93,7 @@ class PileMeta{
         let p = roundTo(this.parameters.p, 5);
         let d = roundTo(this.parameters.d, 4);
         let i = roundTo(this.parameters.i, 6);
-        let ti= roundTo(this.parameters.ti, 4);
-        return `angular control parameters: [p: ${p}, d: ${d}, i: ${i}, ti: ${ti}]`
+        return `angular control parameters: [p: ${p}, d: ${d}, i: ${i}]`
     }
 
     static template(settings){
@@ -103,7 +102,6 @@ class PileMeta{
             p: new GenotypeReal(new PolyScaling(pid.pMin, pid.pMax, pid.pExp)),
             d: new GenotypeReal(new PolyScaling(pid.dMin, pid.dMax, pid.dExp)),
             i: new GenotypeReal(new PolyScaling(pid.iMin, pid.iMax, pid.iExp)),
-            ti: new GenotypeReal(new PolyScaling(pid.tiMin, pid.tiMax, pid.tiExp)),
         }
     }
 }

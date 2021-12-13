@@ -1,6 +1,8 @@
-function assert(val){
-    if(!val){
-        throw "assertion failure";
+function assert(...vals){
+    for(let val of vals){
+        if(!val){
+            throw "assertion failure";
+        }
     }
 }
 

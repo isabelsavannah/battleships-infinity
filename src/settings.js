@@ -9,9 +9,9 @@ let defaults = {
     },
 
     field: {
-        xSize: 4000,
-        ySize: 4000,
-        renderScale: 4,
+        xSize: 8000,
+        ySize: 8000,
+        renderScale: 8,
     },
 
     pool: {
@@ -25,11 +25,11 @@ let defaults = {
 
     ship: {
         initialFood: 0.08,
-        metabolisim: .00001,
+        metabolisim: 0,
         agingBasis: 5000,
         scoringRatio: 0.001,
         scoreThreshold: 5,
-        thrusterPowerMassRatio: 0.02,
+        thrusterPowerMassRatio: 0.1,
         massMetabolisimMin: 1000,
         collisionDamagePerTick: 1,
         shootingTargetInterval: 100,
@@ -70,24 +70,24 @@ let defaults = {
         maxDensity: 3,
         minSides: 3,
         maxSides: 12,
-        symmetryChance: 0.9,
+        symmetryChance: 0.95,
         payloadWeights: {
             'thruster': 0.4,
             'turret': 0.2,
         },
-        seedParts: 2,
+        seedParts: 8,
         pid: {
-            pMin: 0.001, 
-            pMax: 0.1,
-            pExp: 2,
-            dMin: 0.01,
-            dMax: 2,
+            pMin: 0.02, 
+            pMax: 0.5,
+            pExp: 1,
+            dMin: 0.001,
+            dMax: 0.3,
             dExp: 2,
             iMin: 0,
-            iMax: 0.01,
-            iExp: 4,
+            iMax: 0.001,
+            iExp: 2,
             tiMin: 10,
-            tiMax: 1000,
+            tiMax: 100000,
             tiExp: 4,
         }
     },

@@ -14,12 +14,13 @@ function navigate(currentLoc, targetLoc){
 }
 
 function modCircle(theta, min=0, max=Math.PI*2){
+    let circle = Math.PI*2;
     if(theta >= max){
-        let circles = Math.ceil((theta-max)/Math.PI/2);
-        return theta - (Math.PI*2*circles);
+        let circles = Math.ceil((theta-max)/circle);
+        return theta - circle*circles;
     }else if(theta < min){
-        let circles = Math.ceil((min-theta)/Math.PI/2);
-        return theta + (Math.PI*2*circles);
+        let circles = Math.ceil((min-theta)/circle);
+        return theta + circle*circles;
     }else{
         return theta;
     }

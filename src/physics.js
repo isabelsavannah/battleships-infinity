@@ -1,4 +1,5 @@
 import {modCircle} from './geometry.js'
+import {assert} from './assert.js'
 
 class MatterJsPhysics {
     constructor(settings){
@@ -121,6 +122,7 @@ class MatterJsPhysics {
     }
 
     generateForce(part, from, magnitude, direction){
+        assert(part, from, magnitude, direction);
         from = this.transformPosition(from);
         let directedForce = {x: magnitude*Math.sin(direction), y: -magnitude*Math.cos(direction)};
         Matter.Body.applyForce(part, from, directedForce);
@@ -135,11 +137,12 @@ class MatterJsPhysics {
 
     rejoin(rootPart, parts, autoHull){
 		Matter.Body.setParts(rootPart, parts, autoHull);
+
         // fix inertia because matterjs is broken
         let realAreaMoment = parts.map(x => {
             let dx = x.position.x - rootPart.position.x;
             let dy = x.position.y - rootPart.position.y;
-            return x.area * Math.sqrt(dx*dx + dy*dy);
+            return x.mass*(dx*dx+dy*dy) + x.inertia;
         }).reduce((x, y) => x+y, 0);
         Matter.Body.setInertia(rootPart, realAreaMoment);
     }
