@@ -89,7 +89,11 @@ let defaults = {
             tiMin: 10,
             tiMax: 100000,
             tiExp: 4,
-        }
+        },
+        crossover: {
+            lineWeight: 2,
+            circleWeight: 1,
+        },
     },
 
     physicsTickTime: 0.01,
