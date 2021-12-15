@@ -86,15 +86,50 @@ let defaults = {
             iMin: 0,
             iMax: 0.001,
             iExp: 2,
-            tiMin: 10,
-            tiMax: 100000,
-            tiExp: 4,
         },
         crossover: {
             lineWeight: 2,
             circleWeight: 1,
         },
+        mutationWeights: {
+            globalChance: 0.25,
+            groupRadiusSamples: 5,
+            groupRadiusIndex: 0,
+            mutationAmplitude: 0.2,
+            linearDistanceAmplitude: 50,
+            mode: {
+                partValue: 5,
+                metaValue: 1,
+                partTranslate: 5,
+                groupTranslate: 1,
+                groupSymmetry: 1,
+                groupScale: 1,
+                globalScale: 1,
+            },
+            partValue: {
+                theta: 0,
+                x: 0,
+                y: 0,
+                radius: 1,
+                density: 1,
+                sides: 1,
+                symmetry: 0,
+                payload: 1,
+            },
+            meta: {
+                p: 1,
+                d: 1,
+                i: 1,
+            },
+        }
     },
+
+    logging: {
+        globalLevel: 4,
+        moduleLevels: {
+
+        },
+    }
 
     physicsTickTime: 0.01,
     displayTickTime: (1/120),

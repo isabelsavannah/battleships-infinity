@@ -1,37 +1,47 @@
 import {modCircleDelta, navigate} from '../gemoetry.js';
 import {randChoice, randFloat} from '../rand.js';
 
-function pickSelector(pile, settings){
+function pickCrossoverSelector(settings, pile){
     let cross = settings.geno.crossover;
     let total = cross.lineWeight + cross.circleWeight;
     let choice = randFloat(total);
     if(choice <= cross.lineWeight){
-        return pickLine(pile, settings);
+        return pickLine(pile)
     }else{
-        return pickCircle(pile, settings);
+        return pickCircle(3, 1, pile)
     }
 }
 
-function pickCircle(pile, settings){
+function pickCircle(samples, index, pile){
     let source = randChoice(pile.parts);
     let radiusCandidates = [];
-    for(let i=0; i<3; i++){
+    for(let i=0; i<samples; i++){
         let other = randChoice(pile.parts);
         let dx = source.parameters.x - other.parameters.x;
         let dy = source.parameters.y - other.parameters.y;
         radiusCandidates.push(Math.pow(dx*dx + dy*dy, 0.5));
     }
     radiusCandidates.sort();
-    return new CircleSelector(source.parameters.x, source.parameters.y, radiusCandidates[1]);
+    return new CircleSelector(source.parameters.x, source.parameters.y, radiusCandidates[index]);
 }
 
-function pickLine(pile, settings){
+function pickLine(pile){
     let source = randChoice(pile.parts);
     let theta = randFloat(2*Math.PI);
     return new LineSelector(source.parameters.x - 0.5 + Math.rand(), source.parameters.y - 0.5 + Math.rand(), theta);
 }
 
-class CircleSelector{
+class Selector{
+    allIn(pile){
+        return pile.parts.filter(x => this.includes(x));
+    }
+
+    allOut(pile){
+        return pile.parts.filter(x => !this.includes(x));
+    }
+}
+
+class CircleSelector extends Selector{
     constructor(x, y, radius){
         this.x = x;
         this.y = y;
@@ -62,7 +72,7 @@ class CircleSelector{
     }
 }
 
-class LineSelector{
+class LineSelector extends Selector{
     constructor(x, y, normalTheta){
         this.x = x;
         this.y = y;
@@ -91,3 +101,11 @@ class LineSelector{
         return false;
     }
 }
+
+class AllSelector extends Selector{
+    includes(part){
+        return true;
+    }
+}
+
+export {pickCircle, CircleSelector, AllSelector, pickCrossoverSelector}

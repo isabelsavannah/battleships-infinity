@@ -1,17 +1,38 @@
-import {randFloat, randFloatRange} from '../rand.js';
+import {randWeights, randFloat, randFloatRange} from '../rand.js';
+import {logger} from '../logging.js'
+import {assert} from '../assert.js'
 
 class PolyScaling{
     constructor(min, max, exponent){
-        this.min = min;
-        this.max = max;
         this.exponent = exponent;
+        this.scaledMin = this.scale(this.min);
+        this.scaledMax = this.scale(this.max);
     }
 
+    scale(val){
+        return Math.pow(val, 1/this.exponent);
+    }
+
+    unscale(val){
+        return Math.pow(val, this.exponent);
+    }
+
+
     random(){
-        let scaledMin = Math.pow(this.min, 1/this.exponent);
-        let scaledMax = Math.pow(this.max, 1/this.exponent);
-        let scaledChoice = randFloatRange(scaledMin, scaledMax);
-        return Math.pow(scaledChoice, this.exponent);
+        let scaledChoice = randFloatRange(this.scaledMin, this.scaledMax);
+        return this.unscale(scaledChoice);
+    }
+
+    scaleAbsolute(current, scale){
+        let delta = scale * (this.scaledMax - this.scaledMin);
+        let newScaled = Math.max(this.scaledMin, Math.min(this.scaledMax, delta + this.scale(current)));
+        return this.unscale(newScaled);
+    }
+
+    scaleRelative(current, scale){
+        let delta = scale * this.scale(current);
+        let newScaled = Math.max(this.scaledMin, Math.min(this.scaledMax, delta + this.scale(current)));
+        return this.unscale(newScaled);
     }
 }
 
@@ -22,8 +43,20 @@ class LinearScaling extends PolyScaling{
 }
 
 class GenotypeReal{
-    constructor(scaling){
+    constructor(scaling, mutation){
         this.scaling = scaling;
+        this.mutation = mutation;
+    }
+
+    mutate(current, amplitude){
+        let scale = randFloatRange(-1, 1) * amplitude;
+        if(this.mutation === 'absolute'){
+            return this.scaling.scaleAbsolute(current, scale);
+        }else if(this.mutation === 'relative'){
+            return this.scaling.scaleRelative(current, scale);
+        }else{
+            assert(false);
+        }
     }
 
     random(){
@@ -43,20 +76,15 @@ class GenotypeInteger extends GenotypeReal{
 
 class GenotypeWeightedEnum{
     constructor(weightedValues){
-        this.totalWeight = Object.values(weightedValues).reduce((x, y)=>x+y, 0);
         this.weightedValues = weightedValues;
     }
 
     random(){
-        var choice = randFloat(this.totalWeight);
-        for(let value in this.weightedValues){
-            choice-= this.weightedValues[value];
-            if(choice <= 0){
-                return value;
-            }
-        }
+        return randWeights(this.weightedValues);
+    }
 
-        return randChoice(object.keys(this.weightedValues));
+    mutate(current, amplitude){
+        return this.random();
     }
 
     phenotype(gene){

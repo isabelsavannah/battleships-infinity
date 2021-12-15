@@ -1,19 +1,44 @@
 import {GenotypeReal, GenotypeInteger, LinearScaling, PolyScaling, GenotypeWeightedEnum} from './value.js';
 import {PhysPile, PhysBlock, PhysPayload} from '../phenotype.js';
 import {assert} from '../assert.js';
+import {pickCrossoverSelector}
 
 let DesignPileModel = {
     seed: function(settings){
         return DesignPile.seed(settings);
     },
 
-    reproduce: function(parents){
+    reproduce: function(settings, parentA, parentB){
+        if(Math.rand() < 0.5){
+            let temp = parentA;
+            parentA = parentA;
+            parentB = temp;
+        }
+        let selector = pickCrossoverSelector(settings, parentA);
+        let newParts = [selector.allIn(parentA), selector.allOut(parentB)].flat();
+        let newMeta = new PileMeta(crossoverValues(parentA.meta.parameters, parentB.meta.parameters));
 
+        var newPile = new DesignPile(settings, newParts, newMeta);
+
+        while(Math.rand() < settings.mutationWeights.globalChance){
+            newPile = DesignPileModel.mutate(settings, newPile);
+        }
+
+        return newPile;
     },
 
-    mutate: function(individual){
-
+    mutate: function(settings, individual){
+        return individual;
     },
+}
+
+function crossoverValues(valsA, valsB){
+    valsResult = {};
+    for(key in valsA){
+        valsResult[key] = Math.rand() < 0.5 ? valsA[key] : valsB[key];
+    }
+
+    return valsResult;
 }
 
 class DesignPile{
@@ -22,6 +47,9 @@ class DesignPile{
         this.settings = settings;
         this.parts = parts;
         this.meta = meta;
+
+        this.metaTemplate = DesignMeta.template(settings);
+        this.partTemplate = DesignPart.template(settings);
     }
 
     pretty(){
@@ -32,9 +60,8 @@ class DesignPile{
 
     build(){
         let parts = [];
-        let partTemplate = PilePart.template(this.settings);
         for(let part of this.parts){
-            let params = phenotypesFromTemplate(part.parameters, partTemplate);
+            let params = phenotypesFromTemplate(part.parameters, this.partTemplate);
             let mass = params.radius*params.radius*params.density;
             let payload = new PhysPayload(params.payload);
 
@@ -47,7 +74,7 @@ class DesignPile{
             }
         }
 
-        let meta = phenotypesFromTemplate(this.meta.parameters, PileMeta.template(this.settings));
+        let meta = phenotypesFromTemplate(this.meta.parameters, this.metaTemplate);
         return new PhysPile(this.settings, parts, meta);
     }
 
@@ -99,9 +126,9 @@ class PileMeta{
     static template(settings){
         let pid = settings.genotype.pid;
         return {
-            p: new GenotypeReal(new PolyScaling(pid.pMin, pid.pMax, pid.pExp)),
-            d: new GenotypeReal(new PolyScaling(pid.dMin, pid.dMax, pid.dExp)),
-            i: new GenotypeReal(new PolyScaling(pid.iMin, pid.iMax, pid.iExp)),
+            p: new GenotypeReal(new PolyScaling(pid.pMin, pid.pMax, pid.pExp), 'relative'),
+            d: new GenotypeReal(new PolyScaling(pid.dMin, pid.dMax, pid.dExp), 'relative'),
+            i: new GenotypeReal(new PolyScaling(pid.iMin, pid.iMax, pid.iExp), 'relative'),
         }
     }
 }
@@ -127,12 +154,12 @@ class PilePart{
     static template(settings){
         let geno = settings.genotype
         return {
-            x: new GenotypeReal(new LinearScaling(-1*geno.xBound, geno.xBound)),
-            y: new GenotypeReal(new LinearScaling(-1*geno.yBound, geno.yBound)),
-            theta: new GenotypeReal(new LinearScaling(-Math.PI, Math.PI)),
-            radius: new GenotypeReal(new PolyScaling(geno.minBlockRadius, geno.maxBlockRadius, 2)),
-            density: new GenotypeReal(new LinearScaling(geno.minDensity, geno.maxDensity)),
-            sides: new GenotypeInteger(new LinearScaling(geno.minSides, geno.maxSides)),
+            x: new GenotypeReal(new LinearScaling(-1*geno.xBound, geno.xBound), 'relative'),
+            y: new GenotypeReal(new LinearScaling(-1*geno.yBound, geno.yBound), 'relative'),
+            theta: new GenotypeReal(new LinearScaling(-Math.PI, Math.PI), 'absolute'),
+            radius: new GenotypeReal(new PolyScaling(geno.minBlockRadius, geno.maxBlockRadius, 2), 'relative'),
+            density: new GenotypeReal(new LinearScaling(geno.minDensity, geno.maxDensity), 'relative'),
+            sides: new GenotypeInteger(new LinearScaling(geno.minSides, geno.maxSides), 'absolute'),
             symmetry: new GenotypeWeightedEnum({'a': (1-geno.symmetryChance)/2, 'b': (1-geno.symmetryChance)/2, 'both': geno.symmetryChance}),
             payload: new GenotypeWeightedEnum({'thruster': geno.payloadWeights.thruster, 'turret': geno.payloadWeights.turret, 'none': 1}),
         }
