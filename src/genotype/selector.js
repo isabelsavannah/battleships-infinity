@@ -1,17 +1,6 @@
 import {modCircleDelta, navigate} from '../gemoetry.js';
 import {randChoice, randFloat} from '../rand.js';
 
-function pickCrossoverSelector(settings, pile){
-    let cross = settings.geno.crossover;
-    let total = cross.lineWeight + cross.circleWeight;
-    let choice = randFloat(total);
-    if(choice <= cross.lineWeight){
-        return pickLine(pile)
-    }else{
-        return pickCircle(3, 1, pile)
-    }
-}
-
 function pickCircle(samples, index, pile){
     let source = randChoice(pile.parts);
     let radiusCandidates = [];

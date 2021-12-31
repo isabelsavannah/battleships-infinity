@@ -113,7 +113,7 @@ let defaults = {
                 radius: 1,
                 density: 1,
                 sides: 1,
-                symmetry: 0,
+                symmetry: 1,
                 payload: 1,
             },
             meta: {

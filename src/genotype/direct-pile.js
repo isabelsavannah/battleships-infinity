@@ -1,7 +1,9 @@
 import {GenotypeReal, GenotypeInteger, LinearScaling, PolyScaling, GenotypeWeightedEnum} from './value.js';
 import {PhysPile, PhysBlock, PhysPayload} from '../phenotype.js';
 import {assert} from '../assert.js';
-import {pickCrossoverSelector}
+import {pickCircle, pickLine} from './selector.js'
+import {logger} from '../logging.js'
+let logger = logger('pile');
 
 let DesignPileModel = {
     seed: function(settings){
@@ -14,13 +16,20 @@ let DesignPileModel = {
             parentA = parentA;
             parentB = temp;
         }
+
+        logger.debug(`Reproducing from \nparent A = [${parentA.pretty()}] \nparent B = [${parentB.pretty()}]`);
+
         let selector = pickCrossoverSelector(settings, parentA);
-        let newParts = [selector.allIn(parentA), selector.allOut(parentB)].flat();
+        let partsA = selector.allIn(parentA);
+        let partsB = selector.allIn(parentB);
+        logger.debug(`Child inherits ${partsA.length} parts from parent A, ${partsB.length} parts from parent B`)
+        let newParts = [partsA, partsB].flat();
         let newMeta = new PileMeta(crossoverValues(parentA.meta.parameters, parentB.meta.parameters));
 
         var newPile = new DesignPile(settings, newParts, newMeta);
 
         while(Math.rand() < settings.mutationWeights.globalChance){
+            logger.debug("applying a mutation");
             newPile = DesignPileModel.mutate(settings, newPile);
         }
 
@@ -30,6 +39,10 @@ let DesignPileModel = {
     mutate: function(settings, individual){
         return individual;
     },
+
+    build: function(individual){
+        return individual.build()
+    }
 }
 
 function crossoverValues(valsA, valsB){
@@ -184,5 +197,21 @@ function roundTo(n, places){
     let factor = 10**places;
     return Math.round(n*factor)/factor;
 }
+
+function pickCrossoverSelector(settings, pile){
+    let cross = settings.geno.crossover;
+    let total = cross.lineWeight + cross.circleWeight;
+    let choice = randFloat(total);
+    if(choice <= cross.lineWeight){
+        let line = pickLine(pile);
+        logger.trace(`picked line selector at (${line.x}, ${line.y}, ${line.theta}rad)`);
+        return line;
+    }else{
+        let circle = pickCircle(3, 1, pile)
+        logger.trace(`picked circle selector at (${circle.x}, ${circle.y}, ${circle.radius}`);
+        return circle;
+    }
+}
+
 
 export {DesignPileModel}
