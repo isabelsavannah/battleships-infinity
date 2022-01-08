@@ -23,6 +23,12 @@ let defaults = {
         minStableForReproduction: 40,
     },
 
+    pool2: {
+        totalPopulation: 5,
+        concurrentPopulation: 2,
+        runsPerIndividual: 5,
+    },
+
     ship: {
         initialFood: 0.08,
         metabolisim: 0,
@@ -92,7 +98,7 @@ let defaults = {
             circleWeight: 1,
         },
         mutationWeights: {
-            globalChance: 0.25,
+            globalChance: 0.925,
             groupRadiusSamples: 5,
             groupRadiusIndex: 0,
             mutationAmplitude: 0.2,
@@ -129,7 +135,7 @@ let defaults = {
         moduleLevels: {
 
         },
-    }
+    },
 
     physicsTickTime: 0.01,
     displayTickTime: (1/120),

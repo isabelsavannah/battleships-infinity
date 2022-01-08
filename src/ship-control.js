@@ -116,7 +116,7 @@ class ShipControl extends EntityControl{
 
     spawn(x, y){
         let leafs = this.physPile.blocks.map(block => this.spawnBlock(x, y, block, []));
-        let root = this.spawnBlock(x, y, this.physPile.rootBlock, leafs);
+        let root = this.spawnBlock(x, y, this.physPile.rootBlock, Object.values(this.partControlMap));
         this.partRefs = [leafs, [root]].flat();
 
         this.rootPartControl = this.partControlMap[this.physics.getId(root)];
@@ -361,13 +361,6 @@ class ShipControl extends EntityControl{
             console.log(this.physics.getLocation(partRef), partPositionAngle/Math.PI, thrustAngle/Math.PI, partAngle/Math.PI, angleDelta, res);
 
         }
-
-        debugAnnounce({
-            'forwardThrusters': this.forwardThrusters,
-            'reverseThrusters': this.reverseThrusters,
-            'rightThrusters': this.rightThrusters,
-            'leftThrusters': this.leftThrusters,
-        });
     }
 
     tick(){
@@ -449,16 +442,6 @@ class ShipControl extends EntityControl{
 
         let round = x => Math.round(x*10000000)/10000000;
         let format = (x) => x >= 0 ? "+"+round(x) : ""+round(x);
-        debugAnnounce({
-            'targetTheta': targetTheta,
-            'currentTheta': currentTheta,
-            'currentOmega': currentOmega,
-            'error': error,
-            'p term': format(params.p*error),
-            'd term': format(-1*params.d*currentOmega),
-            'i term': format(params.i*integralValue),
-            'clamped control': control,
-        });
     }
 
     powerThrusters(thrusterIds, power){

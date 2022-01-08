@@ -1,8 +1,12 @@
-new designtree model
-    mutations
-noncoliding graphs
 new pool
+noncoliding graphs
 better costing
 statistics gathering
 experiment framework
 new renderer
+
+ditch pointless pool rewrite. just update the old one.
+
+Getting increasingly nervous about my lack of test infra here. Am going to need
+to start building better tests the next time I'm suspicious something isn't
+working.

@@ -1,9 +1,11 @@
 import {GenotypeReal, GenotypeInteger, LinearScaling, PolyScaling, GenotypeWeightedEnum} from './value.js';
+import {randFloat} from '../rand.js';
 import {PhysPile, PhysBlock, PhysPayload} from '../phenotype.js';
 import {assert} from '../assert.js';
 import {pickCircle, pickLine} from './selector.js'
 import {logger} from '../logging.js'
-let logger = logger('pile');
+import {doMutation} from './pile-mutation.js'
+let log = logger('pile');
 
 let DesignPileModel = {
     seed: function(settings){
@@ -11,33 +13,33 @@ let DesignPileModel = {
     },
 
     reproduce: function(settings, parentA, parentB){
-        if(Math.rand() < 0.5){
+        if(Math.random() < 0.5){
             let temp = parentA;
-            parentA = parentA;
+            parentA = parentB;
             parentB = temp;
         }
 
-        logger.debug(`Reproducing from \nparent A = [${parentA.pretty()}] \nparent B = [${parentB.pretty()}]`);
+        log.debug(`Reproducing from \nparent A = [${parentA.pretty()}] \nparent B = [${parentB.pretty()}]`);
 
         let selector = pickCrossoverSelector(settings, parentA);
         let partsA = selector.allIn(parentA);
-        let partsB = selector.allIn(parentB);
-        logger.debug(`Child inherits ${partsA.length} parts from parent A, ${partsB.length} parts from parent B`)
+        let partsB = selector.allOut(parentB);
+        log.debug(`Child inherits ${partsA.length} parts from parent A, ${partsB.length} parts from parent B`)
         let newParts = [partsA, partsB].flat();
         let newMeta = new PileMeta(crossoverValues(parentA.meta.parameters, parentB.meta.parameters));
 
         var newPile = new DesignPile(settings, newParts, newMeta);
 
-        while(Math.rand() < settings.mutationWeights.globalChance){
-            logger.debug("applying a mutation");
-            newPile = DesignPileModel.mutate(settings, newPile);
+        log.trace(`Child before mutation: ${newPile.pretty()}`);
+
+        while(Math.random() < settings.genotype.mutationWeights.globalChance){
+            log.debug("applying a mutation");
+            newPile = doMutation(settings, newPile);
         }
 
-        return newPile;
-    },
+        log.trace(`Finalized child: ${newPile.pretty()}`);
 
-    mutate: function(settings, individual){
-        return individual;
+        return newPile;
     },
 
     build: function(individual){
@@ -46,9 +48,9 @@ let DesignPileModel = {
 }
 
 function crossoverValues(valsA, valsB){
-    valsResult = {};
-    for(key in valsA){
-        valsResult[key] = Math.rand() < 0.5 ? valsA[key] : valsB[key];
+    let valsResult = {};
+    for(let key in valsA){
+        valsResult[key] = Math.random() < 0.5 ? valsA[key] : valsB[key];
     }
 
     return valsResult;
@@ -61,14 +63,14 @@ class DesignPile{
         this.parts = parts;
         this.meta = meta;
 
-        this.metaTemplate = DesignMeta.template(settings);
-        this.partTemplate = DesignPart.template(settings);
+        this.metaTemplate = PileMeta.template(settings);
+        this.partTemplate = PilePart.template(settings);
     }
 
     pretty(){
         let lines = this.parts.map(x => x.pretty());
         lines.push(this.meta.pretty());
-        return lines;
+        return lines.join("\n");
     }
 
     build(){
@@ -92,12 +94,16 @@ class DesignPile{
     }
 
     static seed(settings){
+        log.debug("Producing new seed design");
         let parts = [];
         let partTemplate = PilePart.template(settings);
         for(let i=0; i<settings.genotype.seedParts; i++){
-            parts.push(new PilePart(randFromTemplate(partTemplate)));
+            let newPart = new PilePart(randFromTemplate(partTemplate));
+            log.trace(`Random seed part ${newPart.pretty()}`);
+            parts.push(newPart);
         }
 
+        log.debug(`Seed design has ${parts.length} parts`);
         let meta = new PileMeta(randFromTemplate(PileMeta.template(settings)));
 
         return new DesignPile(settings, parts, meta);
@@ -108,6 +114,7 @@ function randFromTemplate(template){
     let res = {};
     for(let key in template){
         res[key] = template[key].random();
+        assert(res[key])
     }
 
     return res;
@@ -199,19 +206,19 @@ function roundTo(n, places){
 }
 
 function pickCrossoverSelector(settings, pile){
-    let cross = settings.geno.crossover;
+    let cross = settings.genotype.crossover;
     let total = cross.lineWeight + cross.circleWeight;
     let choice = randFloat(total);
     if(choice <= cross.lineWeight){
         let line = pickLine(pile);
-        logger.trace(`picked line selector at (${line.x}, ${line.y}, ${line.theta}rad)`);
+        log.trace(`picked line selector at (${line.x}, ${line.y}, ${line.theta}rad)`);
         return line;
     }else{
         let circle = pickCircle(3, 1, pile)
-        logger.trace(`picked circle selector at (${circle.x}, ${circle.y}, ${circle.radius}`);
+        log.trace(`picked circle selector at (${circle.x}, ${circle.y}, ${circle.radius})`);
         return circle;
     }
 }
 
 
-export {DesignPileModel}
+export {DesignPileModel, DesignPile, PilePart, PileMeta}

@@ -6,6 +6,7 @@ class MatterJsPhysics {
         this.engine = Matter.Engine.create();
         this.settings = settings;
         this.controllers = {};
+        this.stage();
     }
 
     stage(){

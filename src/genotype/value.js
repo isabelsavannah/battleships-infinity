@@ -5,8 +5,8 @@ import {assert} from '../assert.js'
 class PolyScaling{
     constructor(min, max, exponent){
         this.exponent = exponent;
-        this.scaledMin = this.scale(this.min);
-        this.scaledMax = this.scale(this.max);
+        this.scaledMin = this.scale(min);
+        this.scaledMax = this.scale(max);
     }
 
     scale(val){

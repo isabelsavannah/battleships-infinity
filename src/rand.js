@@ -28,9 +28,9 @@ function randChoice(array){
 }
 
 function randWeights(weightMap){
-    let total = weightMap.values().reduce((x, y) => x+y, 0);
+    let total = Object.values(weightMap).reduce((x, y) => x+y, 0);
     var choice = Math.random() * total;
-    for(let key of weightMap.keys()){
+    for(let key in weightMap){
         choice -= weightMap[key];
         if(choice <= 0){
             return key;
@@ -40,4 +40,10 @@ function randWeights(weightMap){
     return randChoice(weightMap.keys());
 }
 
-export {randWeights, randChoice, randFloat, randFloatRange, randInt, randIntDecaying, randIntRange}
+function shuffle(list){
+    keyedList = list.map(x => [Math.random(), x]);
+    keyedList.sort();
+    return keyedList.map(x => x[1]);
+}
+
+export {randWeights, randChoice, randFloat, randFloatRange, randInt, randIntDecaying, randIntRange, shuffle}

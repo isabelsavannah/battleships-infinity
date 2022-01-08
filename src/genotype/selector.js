@@ -1,4 +1,4 @@
-import {modCircleDelta, navigate} from '../gemoetry.js';
+import {modCircleDelta, navigate} from '../geometry.js';
 import {randChoice, randFloat} from '../rand.js';
 
 function pickCircle(samples, index, pile){
@@ -17,7 +17,7 @@ function pickCircle(samples, index, pile){
 function pickLine(pile){
     let source = randChoice(pile.parts);
     let theta = randFloat(2*Math.PI);
-    return new LineSelector(source.parameters.x - 0.5 + Math.rand(), source.parameters.y - 0.5 + Math.rand(), theta);
+    return new LineSelector(source.parameters.x - 0.5 + Math.random(), source.parameters.y - 0.5 + Math.random(), theta);
 }
 
 class Selector{
@@ -32,6 +32,7 @@ class Selector{
 
 class CircleSelector extends Selector{
     constructor(x, y, radius){
+        super();
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -63,6 +64,7 @@ class CircleSelector extends Selector{
 
 class LineSelector extends Selector{
     constructor(x, y, normalTheta){
+        super();
         this.x = x;
         this.y = y;
         this.theta = normalTheta;
@@ -74,7 +76,7 @@ class LineSelector extends Selector{
         if(sym === 'a' || sym === 'both'){
             let targetTheta = navigate({x: this.x, y: this.y}, {x: part.parameters.x, y: part.parameters.y});
             let thetaDelta = modCircleDelta(this.theta - targetTheta);
-            if(Math.abs(targetDelta) <= Math.PI){
+            if(Math.abs(thetaDelta) <= Math.PI/2){
                 return true;
             }
         }
@@ -82,7 +84,7 @@ class LineSelector extends Selector{
         if(sym === 'b' || sym === 'both'){
             let targetTheta = navigate({x: this.x, y: this.y}, {x: -1*part.parameters.x, y: part.parameters.y});
             let thetaDelta = modCircleDelta(this.theta - targetTheta);
-            if(Math.abs(targetDelta) <= Math.PI){
+            if(Math.abs(thetaDelta) <= Math.PI/2){
                 return true;
             }
         }
@@ -97,4 +99,4 @@ class AllSelector extends Selector{
     }
 }
 
-export {pickCircle, CircleSelector, AllSelector, pickCrossoverSelector}
+export {pickCircle, pickLine, CircleSelector, AllSelector}

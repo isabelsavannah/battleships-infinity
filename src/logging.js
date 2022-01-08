@@ -12,7 +12,7 @@ var keyLevels = {};
 let buffer = [];
 let bufferCap = 1000;
 
-class Logger(){
+class Logger{
     constructor(name){
         this.name = name;
     }
@@ -20,7 +20,7 @@ class Logger(){
     log(level, text){
         let targetLevel = keyLevels[this.name] ? keyLevels[this.name] : globalLevel;
         if(targetLevel <= level){
-            let time = Math.round(Performance.now());
+            let time = Math.round(performance.now());
             let formatted = `[${time}][${levelNames[level]}][${this.name}]: ${text}`;
             console.log(formatted);
 
